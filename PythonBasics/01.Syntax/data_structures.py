@@ -34,7 +34,7 @@ else:
     print('Tosho NOT found!') #this is the result
     
 #=================================================================
-#Dictionaty
+#Dictionary
 myDictionary = {'Sofia': 10000,
                 'Varna': 8000,
                 'Plovdiv': 9000,
@@ -51,4 +51,33 @@ del myDictionary['Varna'] #remove element
 myDictionary['Turnovo'] = 7500; #add new element
 print(myDictionary)
 
+# =============================================================================
+#Set - unordered unique values
+mySet = set([1, 2, 3, 4, 1, 2, 3])
+print(mySet) #prints unique values. 
+
+if (4 in mySet): #better than .__contains__ (i think)
+    print('Yes, it contains "4"') 
+    
+mySubSet = set([2, 3])
+
+if (mySubSet.issubset(mySet)): #or use mySet.issuperset(mySubSet)
+    print('Yes, it is a subset')
+    
+mySet.add('wat')
+print(mySet)
+
+anotherSet = set([0.5, 'Hello, Set'])
+
+mySet.update(anotherSet) #adds everything from 'anotherSet'
+print(mySet)
+
+mySet.discard(1) 
+#difference between discard and remove: 
+#when removing, if there is no such value, there is an error
+#when discarding, there is no error if no value matches
+print(mySet)
+
+print(len(mySet)) #length of set
+# =============================================================================
 
