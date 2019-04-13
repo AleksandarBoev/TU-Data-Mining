@@ -83,8 +83,21 @@ print(columnOneSeries) #prints entire first column
 print(columnOneSeries[0]) #prints first column, first element
 
 rowOneSeries = myDataFrame.loc[0] #extracting a row
+print(rowOneSeries[0])#extracting a value from the row
+print(rowOneSeries[1])
 print(type(rowOneSeries)) #<class 'pandas.core.series.Series'>
-print(rowOneSeries['LoanAmount0']) #extracting a value from the row
+print(rowOneSeries['LoanAmount0']) #extracting a value from the row by the name
+
+def print_dataframe(dataFrame, firstRows): #prints first a number of first rows
+    for index, row in myDataFrame.iterrows() :
+        pretty_print(row)
+        firstRows -= 1
+        if (firstRows <= 0):
+            break
+
+print_dataframe(myDataFrame, 10)
+
+
 
 #df = pandas.read_csv('hrdata.csv', index_col='Name', parse_dates=['Hire Date'])
 #the upper code gives more options. If every customer had a unique id, then I could
