@@ -17,6 +17,8 @@ data = [['Alex',10, 2.0],
         ['Pesho', 16, 4.0]]
 df = pd.DataFrame(data,columns=['Name','Age', 'Grade'])
 print(df)
+print(df.loc[0])
+print(df.loc[0]['Name'])
 
 #For filtering, the expression has to look something like this:
 # resultingDataFrame = dataFrame[<boolean expression>]
@@ -38,3 +40,19 @@ filteredByAgeViaFunc2 = df[greater_than_v2(df, 12)]
 print(filteredByAgeViaFunc2)
 
 print(len(filteredByAgeViaFunc2.index)) # getting the count of rows of a dataframe
+
+print(len(filteredByAge)) #getting the count
+
+#==============Iterating a data frame:=========================================
+for index, row in df.iterrows() :
+    calculation = row['Age'] + row['Grade']
+    print(calculation)
+
+#=====================Adding a new row=========================================
+df2 = df.iloc[0:0] #Result: an empty data frame with same column names
+df2 = df2.append(df) #Add all rows from df to df2
+df2 = df2.append({'Name': 'Stamat', 'Age' : 20, 'Grade' : 5.89}, ignore_index=True) #Add one row
+df2 = df2.append(df.loc[0]) #Add row from other df
+df2 = df2.append(df[df['Name'] == 'Pesho']) #Again add row
+print(df2)
+print(df == df2)
