@@ -15,6 +15,7 @@ data = [['Alex',10, 2.0],
         ['Tosho', 11, 3.0], 
         ['Gosho', 15, 2.0], 
         ['Pesho', 16, 4.0]]
+
 df = pd.DataFrame(data,columns=['Name','Age', 'Grade'])
 print(df)
 print(df.loc[0])
@@ -56,3 +57,11 @@ df2 = df2.append(df.loc[0]) #Add row from other df
 df2 = df2.append(df[df['Name'] == 'Pesho']) #Again add row
 print(df2)
 print(df == df2)
+
+#==Adding all elements from one df to another, which has an additional column==
+df3 = pd.DataFrame(data,columns=['Name','Age', 'Grade', 'Calculation'])
+
+for index, row in df.iterrows() :
+    calculation = row['Age'] * row['Grade']
+    
+    df3 = df3.append(row)

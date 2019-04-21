@@ -4,13 +4,17 @@ Created on Tue Apr 16 15:37:05 2019
 
 @author: sa6o6
 """
-import numpy as np
-val = 10
-arr1 = np.array([1, 2])
-arr2 = np.array([2, 3])
+data = [['Alex',10, 2.0],
+        ['Bob',12, 3.0],
+        ['Clarke',13, 2.0],
+        ['Tosho', 11, 3.0], 
+        ['Gosho', 15, 2.0], 
+        ['Pesho', 16, 4.0]]
 
-mult = arr1 * arr2
+print(data)
+data.append(['Kiril', 35, 6.0, 'Calculation'])
+print(data)
 
-arr1 = arr1 + val
-print(arr1)
-print(arr1 >= 12)
+data2 = []
+data2.append(['Gosho', 22])
+print(data2)
