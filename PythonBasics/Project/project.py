@@ -8,52 +8,46 @@ Created on Tue Apr  9 11:30:52 2019
 
 
 #-------------------Extracting data from csv file------------------------------
-filePath = 'C:/AleksandarUser/Programming/GitHubRepositories/TU-Data-Mining/Data/data.csv'
-
 import pandas
 import numpy as np    
 import project_library as pl #the fix: needed to run the file [F5]. Not debug it [Ctrl] + [F5]
-myDataFrame = pandas.read_csv(filePath)
-
-#=====================Testing library methods==================================
-
-
-
-#==============================================================================
+rootFilePath = 'C:/AleksandarUser/Programming/GitHubRepositories/TU-Data-Mining/Data/'
+dataFilePath = rootFilePath + 'data.csv'
+df = pandas.read_csv(dataFilePath)
 
 
-#==============================================================================
-#Целта е да се увеличи броят на приеманите кандидати за кредит, без 
-#статистически да се влоши съотношението на "лошите" към приеманите кредитополучатели.
-#За качеството на популацията от приемани кандидати се използва статистическият 
-#показател Bad_Rate = Bads/Accepts.
-#--------Separating the good from the bad (the goods should stay)--------------
-
-
-#==============================================================================
-#--------------------Identifying clients in "gray" area------------------------
-#Параметри за оптимизация
-#x = [LoanAmount LoanPeriod]' - два параметъра на кредита, чиито оптимални стойности се 
-#търсят за всеки отхвърлян кандидат. 
-#Кандидатът се приема за отхвърлян, ако PredictedGood(x) = PredictedGood0 + x'*par >= cut-off, 
-#където par = [-0.0250382262277766    59.0719735110589]'.
 par = np.array([-0.0250382262277766, 59.0719735110589])
-cutOff = 684.0 #граничен скор
+cutOff = 600.0
 
-print(pl.calculate_predicted_good(myDataFrame.loc[0], par))
-df = pl.get_risky_clients(myDataFrame, par, cutOff)
-pl.print_dataframe_firstRows(df, 10)
-#======================Testing the advanced filter=============================
+#================Data preparations, calculations and filtering=================
+clients_with_scores = pl.get_df_with_client_score(df, par)
+pl.print_dataframe_firstRows(clients_with_scores, 10)
 
-grayZoneDf = pl.get_gray_zone_data_frame(myDataFrame, par, cutOff)
-print('The data in the "gray zone" is: ')
-pl.pretty_print_dataframe(grayZoneDf)
-grayZoneNumber = len(grayZoneDf)
-print(grayZoneNumber)
-print(grayZoneNumber / len(myDataFrame))
+print()
+print()
 
-lowerScorePeople = pl.get_people_with_lower_score(myDataFrame, 684.0)
-pl.pretty_print_dataframe_firstRows(pl.get_good_clients_data_frame(myDataFrame), 20)
+print('Accepted clients: ')
+accepted_clients = pl.get_accepted_clients(clients_with_scores, cutOff)
+pl.print_dataframe_firstRows(accepted_clients, 10)
+
+print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+
+print('Risky clients: ')
+risky_clients = pl.get_risky_clients(clients_with_scores, cutOff)
+pl.print_dataframe_firstRows(risky_clients, 10)
+
+print(len(accepted_clients))
+print(len(risky_clients))
+
+#==================Writing results onto .csv files=============================
+acceptedCustomersFilePath = rootFilePath + 'accepted_customers.csv'
+accepted_clients.to_csv(acceptedCustomersFilePath, index = False)
+deniedCustomersAfterAdjustmentsFilePath = rootFilePath + 'denied_customers_after_adjustments.csv'
+acceptedCustomersAfterAdjustmentsFilePath = rootFilePath + 'accepted_customers_after_adjustments.csv'
+
+
+
+
 
 
 
