@@ -7,8 +7,11 @@ Created on Fri Apr 19 11:29:46 2019
 #https://youtu.be/onMqBj-IgR0?t=341 --> tutorial for GEKKO library
 
 #!pip install gekko --> this is how an external library is installed
+# internet is needed to use GEKKO!
 from gekko import GEKKO    
 import numpy as np
+import math
+import project_library as pl
 
 #https://youtu.be/UD0ac9pKopk?t=895
 m = GEKKO()
@@ -87,10 +90,12 @@ n = GEKKO()
 
 LoanAmount0 = 4000.0
 LoanPeriod0 = 10.0
+PredictedGood0 = -322.00000
 a = 0.9
+cutOff = 684.0
 
-s1 = n.Var(0, 200.0, 260000.0) #LoanAmount0
-s2 = n.Var(0, 2, 60) #LoanPeriod0
+s1 = n.Var(LoanAmount0, 200.0, 160000.0) #LoanAmount0
+s2 = n.Var(LoanPeriod0, 2.0, 60.0) #LoanPeriod0
 
 #n.Equation(s1 >= 200.0)
 #n.Equation(s1 <= 260000.0)
@@ -98,14 +103,43 @@ s2 = n.Var(0, 2, 60) #LoanPeriod0
 #n.Equation(s2 >= 2.0)
 #n.Equation(s2 <= 60.0)
 
+par = [-0.0250382262277766, 59.0719735110589]
+
+n.Equation(PredictedGood0 - par[0] * LoanAmount0 - par[1] * LoanPeriod0 + par[0] * s1 + par[1] * s2 > cutOff)
+
 n.Obj(a*(((s1 - LoanAmount0)/LoanAmount0)**2) + (1 - a)*(((s2 - LoanPeriod0)/LoanPeriod0)**2))
-#n.Obj(((s1 - LoanAmount0)/LoanAmount0)**2 + ((s2 - LoanPeriod0)/LoanPeriod0)**2)
+
 
 n.solve(disp=False)
 print(s1.value)
 print(s2.value)
 
-print(type(s1))
+
+values = np.array([s1.value[0], s2.value[0]])
+arrayMultiplicationResult = values * par
+arraySum = arrayMultiplicationResult[0] + arrayMultiplicationResult[1]
+new_client_score = arraySum + PredictedGood0 - par[0] * LoanAmount0 - par[1] * LoanPeriod0  #client_score = PredictedGood(x)
+print(new_client_score)
+
+print('Objective: ' + str(n.options.objfcnval)) #printing result of obj function
+
+roundedSuggestedLoanAmount = s1.value[0]
+
+aaa = 120580.082145
+aaa /= 100
+aaa = math.floor(aaa)
+aaa *= 100
+print(aaa)
+
+#[3872.082145]
+#[26.975853424]
+
+bbb = 22.000001
+bbb = math.ceil(bbb)
+print(bbb)
+
+la = 280
+print(pl.round_loan_amount(la))
 
 
 

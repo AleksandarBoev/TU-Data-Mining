@@ -6,6 +6,7 @@ Created on Fri Apr 12 10:19:04 2019
 """
 import numpy as np
 import pandas as pd
+import math
 
 #====================DataFrame printing functions==============================
 def pretty_string(row):
@@ -76,7 +77,7 @@ def calculate_client_score(row, par):
     values = np.array([row['LoanAmount0'], row['LoanPeriod0']])
     arrayMultiplicationResult = values * par
     arraySum = arrayMultiplicationResult[0] + arrayMultiplicationResult[1]
-    client_score = arraySum + row['PredictedGood0'] #client_score = PredictedGood(x)
+    client_score = arraySum + row['PredictedGood0'] - par[0] * row['LoanAmount0'] - par[1] * row['LoanPeriod0'] #client_score = PredictedGood(x)
     return client_score
 
 def get_df_with_client_score(dataFrame, par):
@@ -94,8 +95,25 @@ def get_accepted_clients(dataFrame, cutOff):
     return dataFrame[dataFrame['ClientScore'] >= cutOff]
     
    
-#=================
+#=================Optimization method==========================================
+#def get_optimized_loan_parameters(row, a, par, cutOff): #TODO
 
+#=====================Roundung loan attributes=================================
+def round_loan_amount(loanAmount):
+    if (loanAmount > 1000):
+        loanAmount /= 100
+        loanAmount = math.floor(LoanAmount)
+        loanAmount *= 100
+        return loanAmount
+    else:
+        loanAmount /= 10
+        residue = loanAmount % 5
+        loanAmount -= residue
+        loanAmount *= 10
+        return loanAmount
+    
+def round_loan_period(loanPeriod):
+    return math.ceil(loanPeriod)
 
 
 
