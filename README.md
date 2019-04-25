@@ -1,5 +1,8 @@
 # TU-Data-Mining
 Technical University subject on Data Mining
+[to page](#page)
+
+![alt text](https://raw.githubusercontent.com/AleksandarBoev/TU-Data-Mining/master/Data/SimpleDiagram.png)
 
 [Custom foo description](#page)
 
