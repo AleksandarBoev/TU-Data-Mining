@@ -2,6 +2,9 @@
 """
 Created on Fri Apr 12 10:19:04 2019
 
+Important notes: rerun this file each time a change has been made! And then
+reimport it whereever it is used
+
 @author: sa6o6
 """
 import numpy as np
@@ -90,9 +93,9 @@ def round_loan_period(loanPeriod):
 #=============Loan attributes optimization functions===========================
     
 def get_optimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par, cutOff):
-    n = GEKKO()
+    n = GEKKO() #internet connection is needed for the GEKKO library to work!
     
-    #Value between '0' and '1'. 
+    #'a' - value between '0' and '1'. 
     #Closer to '1' means loan amount will not change much. 
     #Closer to '0' - loan period will not change much
     a = 0.9
@@ -104,8 +107,11 @@ def get_optimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par,
 
     n.Obj(a*(((x1 - loanAmount0)/loanAmount0)**2) + (1 - a)*(((x2 - loanPeriod0)/loanPeriod0)**2))
     
-    n.solve(disp=False)
-    return [x1.value[0], x2.value[0]]
+    try:
+        n.solve(disp=False)
+        return [x1.value[0], x2.value[0]]
+    except: #TODO don't know how to only intercept "Solution Not Found" exception
+        return [0, 0]
 
 def get_rounded_iptimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par, cutOff, loanAmountStep):
     result = get_optimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par, cutOff)
@@ -113,43 +119,61 @@ def get_rounded_iptimized_loan_attributes(loanAmount0, loanPeriod0, predictedGoo
     result[1] = round_loan_period(result[1])
     return result
 
-#=====================Client score functions===================================
+#=====================Client score functions=================================== 
+
+#client_score = PredictedGood(x)
+def calculate_new_client_score(loanAmount0, loanPeriod0, predictedGood0, optimizedLoanAmount, optimizedLoanPeriod, par):
+    if (optimizedLoanAmount == 0 or optimizedLoanPeriod == 0):
+        return 0.0
+    
+    values = np.array([optimizedLoanAmount, optimizedLoanPeriod])
+    arrayMultiplicationResult = values * par
+    arraySum = arrayMultiplicationResult[0] + arrayMultiplicationResult[1]
+    new_client_score = arraySum + predictedGood0 - par[0] * loanAmount0 - par[1] * loanPeriod0 
+    
+    return new_client_score
+
+def get_optimized_clients_df(dataFrame, par, cutOff):
+    data = []
+    for index, row in dataFrame.iterrows() :
+        #TODO rounded values increase client score much above cutOff!
+        optimizedLoanAttributes = get_optimized_loan_attributes(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], par, cutOff)
+        
+        new_client_score = calculate_new_client_score(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], par)
+     
+        data.append([row['CustomerId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], new_client_score])
+            
+    return pd.DataFrame(data, columns=['CustomerId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
+
+ 
+#=======================Get certain clients====================================
+def get_client_by_id(dataframe, customerId):
+    return dataframe.loc[dataframe['CustomerId'] == customerId]
+
 def get_risky_clients(dataFrame, cutOff):
     return dataFrame[dataFrame['PredictedGood0'] < cutOff]
 
 def get_accepted_clients(dataFrame, cutOff):
-    return dataFrame[dataFrame['PredictedGood0'] >= cutOff]    
+    return dataFrame[dataFrame['PredictedGood0'] >= cutOff]   
 
-def calculate_new_client_score(loanAmount0, loanPeriod0, predictedGood0, optimizedLoanAmount, optimizedLoanPeriod, par):
-    values = np.array([optimizedLoanAmount, optimizedLoanPeriod])
-    arrayMultiplicationResult = values * par
-    arraySum = arrayMultiplicationResult[0] + arrayMultiplicationResult[1]
-    new_client_score = arraySum + predictedGood0 - par[0] * loanAmount0 - par[1] * loanPeriod0 #client_score = PredictedGood(x)
-    
-    return new_client_score
+def get_accepted_clients_after_optimization(optimizedDf, cutOff):
+    return optimizedDf[optimizedDf['OptimizedPredictedGood'] >= cutOff]
 
-def get_optimized_customer_df(dataFrame, par, cutOff):#TODO
-    data = []
+def get_denied_clients_after_optimization(optimizedDf, cutOff):
+    return optimizedDf[optimizedDf['OptimizedPredictedGood'] < cutOff]
+
+
+#=========================Testing functions====================================
+def get_part_of_data_frame(dataFrame, count):
+    result = dataFrame.iloc[0:0] #Result: an empty data frame with same column names
+
     for index, row in dataFrame.iterrows() :
-        #TODO rounded values increase client score much above cutOff
-        optimizedLoanAttributes = get_optimized_loan_attributes(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], par, cutOff)
-        
-        new_client_score = calculate_new_client_score(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], par)
-        data.append([row['CustomerId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], new_client_score])
+        result = result.append(row)
+        count -= 1
+        if (count <= 0):
+            break;
             
-    return pd.DataFrame(data, columns=['CustomerId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
-   
-#=================Optimization method==========================================
-#def get_optimized_loan_parameters(row, a, par, cutOff): #TODO
-    
-#=======================Get certain clients====================================
-def get_client_by_id(dataframe, customerId):
-    return dataframe.loc[dataframe['CustomerId'] == 111331]
-
-
-
-
-
+    return result
 
 
 

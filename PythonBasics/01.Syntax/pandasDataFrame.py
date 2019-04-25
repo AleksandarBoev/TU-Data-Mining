@@ -2,6 +2,8 @@
 """
 Created on Tue Apr  9 17:23:44 2019
 
+Code, showing how dataframes work
+
 @author: sa6o6
 """
 #Learning source: https://www.tutorialspoint.com/python_pandas/python_pandas_dataframe.htm

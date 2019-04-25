@@ -2,6 +2,8 @@
 """
 Created on Fri Apr 19 11:29:46 2019
 
+Code showing how Gekko library works
+
 @author: sa6o6
 """
 #https://youtu.be/onMqBj-IgR0?t=341 --> tutorial for GEKKO library
@@ -77,7 +79,6 @@ print(z2.value)
 #LoanPeriod0           10.00000
 #Good                   0.00000
 #PredictedGood0      -322.00000
-#ClientScore          168.56683
 
 #Formulas:
 #f(x) = a*((x(1) - LoanAmount0)/LoanAmount0)^2 + (1 - a)*((x(2) - LoanPeriod0)/LoanPeriod0)^2
@@ -90,7 +91,7 @@ n = GEKKO()
 
 LoanAmount0 = 4000.0
 LoanPeriod0 = 10.0
-PredictedGood0 = -322.00000
+PredictedGood0 = -200000.00000
 a = 0.9
 cutOff = 684.0
 
@@ -109,7 +110,12 @@ n.Equation(PredictedGood0 - par[0] * LoanAmount0 - par[1] * LoanPeriod0 + par[0]
 
 n.Obj(a*(((s1 - LoanAmount0)/LoanAmount0)**2) + (1 - a)*(((s2 - LoanPeriod0)/LoanPeriod0)**2))
 
-
+#If there is no solution, this is how to catch the exception thrown
+#try:
+#    n.solve(disp=False)
+#except: #TODO don't know how to only intercept "Solution Not Found" exception
+#    print('Sorry, buddy. No solution found!')
+    
 n.solve(disp=False)
 print(s1.value)
 print(s2.value)
