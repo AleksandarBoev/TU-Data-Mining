@@ -85,7 +85,7 @@ print(z2.value)
 #x(1) <= 260000
 #x(2) >= 2
 #x(2) <= 60
-n.clear()
+
 n = GEKKO()
 
 LoanAmount0 = 4000.0
@@ -115,7 +115,7 @@ print(s1.value)
 print(s2.value)
 
 
-values = np.array([s1.value[0], s2.value[0]])
+values = np.array([s1.value[0], s2.value[0]]) #the newly generated optimized loan amount and period
 arrayMultiplicationResult = values * par
 arraySum = arrayMultiplicationResult[0] + arrayMultiplicationResult[1]
 new_client_score = arraySum + PredictedGood0 - par[0] * LoanAmount0 - par[1] * LoanPeriod0  #client_score = PredictedGood(x)
@@ -123,23 +123,6 @@ print(new_client_score)
 
 print('Objective: ' + str(n.options.objfcnval)) #printing result of obj function
 
-roundedSuggestedLoanAmount = s1.value[0]
-
-aaa = 120580.082145
-aaa /= 100
-aaa = math.floor(aaa)
-aaa *= 100
-print(aaa)
-
-#[3872.082145]
-#[26.975853424]
-
-bbb = 22.000001
-bbb = math.ceil(bbb)
-print(bbb)
-
-la = 280
-print(pl.round_loan_amount(la))
 
 
 
