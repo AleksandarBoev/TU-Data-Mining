@@ -44,7 +44,7 @@ data = {ClientId, LoanAmount0, LoanPeriod0, Good, PredictedGood0}	18698 x 4
 	
 **Целева функция**
 		`f(x) = a*((x(1) - LoanAmount0)/LoanAmount0)^2 + (1 - a)*((x(2) - LoanPeriod0)/LoanPeriod0)^2`, където
-		a е тегловен параметър в интервала (0, 1) /ако a = 0.9 препоръчваната /променена/ големина на заема с по-голяма тежест ще е близка до желаната от клиента/.
+		***"a"*** е тегловен параметър в интервала (0, 1) /ако ***"a"*** = 0.9 препоръчваната /променена/ големина на заема с по-голяма тежест ще е близка до желаната от клиента/.
 	
 **Задача за оптимизация**
 
@@ -77,6 +77,10 @@ x(2) = {2, 3, ..., 60}			/60 дискретни стойности/
 
 
 # Алгоритъм
+
+Някакво уравнение:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=L(x_{1},&space;...,&space;x_{n},&space;\lambda&space;_{1},&space;...,&space;\lambda&space;_{m})&space;=&space;f(x_{1},&space;...,&space;x_{n})&space;-&space;\sum_{k=1}^{m}&space;\lambda&space;_{k}(g_{k}(x_{1},&space;...,&space;x_{n})&space;-&space;c_{k})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?L(x_{1},&space;...,&space;x_{n},&space;\lambda&space;_{1},&space;...,&space;\lambda&space;_{m})&space;=&space;f(x_{1},&space;...,&space;x_{n})&space;-&space;\sum_{k=1}^{m}&space;\lambda&space;_{k}(g_{k}(x_{1},&space;...,&space;x_{n})&space;-&space;c_{k})" title="L(x_{1}, ..., x_{n}, \lambda _{1}, ..., \lambda _{m}) = f(x_{1}, ..., x_{n}) - \sum_{k=1}^{m} \lambda _{k}(g_{k}(x_{1}, ..., x_{n}) - c_{k})" /></a>
 
 # Пример
 
