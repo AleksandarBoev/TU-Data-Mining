@@ -13,23 +13,10 @@ import math
 from gekko import GEKKO    
 
 #====================DataFrame printing functions==============================
-def pretty_string(row):
-    goodCustomer = 'Yes' if row['Good'] == 1 else 'No' #ternary operator
-    
-    return ('%s: %s | %s: %s leva | %s: %s months | %s: %s | %s: %s' % (
-          'Customer id', row['CustomerId'],
-          'LoanAmount0', row['LoanAmount0'],
-          'LoanPeriod0', row['LoanPeriod0'],
-          'Good', goodCustomer,
-          'PredictedGood0', row['PredictedGood0']
-            ))
-
-def pretty_print(row):   
-    print(pretty_string(row))
-    
 def print_dataframe(dataFrame): #prints all data
     for index, row in dataFrame.iterrows() :
         print(row)
+        print('_________________________________________________')
         
 def print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
     for index, row in dataFrame.iterrows() :
@@ -39,13 +26,24 @@ def print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
         if (firstRows <= 0):
             break
 
+def pretty_string(row):
+    goodCustomer = 'Yes' if row['Good'] == 1 else 'No' #ternary operator
+    
+    return ('%s: %s | %s: %s leva | %s: %s months | %s: %s | %s: %s' % (
+          'Client id', row['ClientId'],
+          'LoanAmount0', row['LoanAmount0'],
+          'LoanPeriod0', row['LoanPeriod0'],
+          'Good', goodCustomer,
+          'PredictedGood0', row['PredictedGood0']
+            ))
+
 def pretty_print_dataframe(dataFrame): #prints all data
     for index, row in dataFrame.iterrows() :
-        pretty_print(row)
+        print(pretty_string(row))
         
 def pretty_print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
     for index, row in dataFrame.iterrows() :
-        pretty_print(row)
+        print(pretty_string(row))
         firstRows -= 1
         if (firstRows <= 0):
             break
@@ -141,14 +139,14 @@ def get_optimized_clients_df(dataFrame, par, cutOff):
         
         new_client_score = calculate_new_client_score(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], par)
      
-        data.append([row['CustomerId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], new_client_score])
+        data.append([row['ClientId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], optimizedLoanAttributes[0], optimizedLoanAttributes[1], new_client_score])
             
-    return pd.DataFrame(data, columns=['CustomerId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
+    return pd.DataFrame(data, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
 
  
 #=======================Get certain clients====================================
-def get_client_by_id(dataframe, customerId):
-    return dataframe.loc[dataframe['CustomerId'] == customerId]
+def get_client_by_id(dataframe, clientId):
+    return dataframe.loc[dataframe['ClientId'] == clientId]
 
 def get_risky_clients(dataFrame, cutOff):
     return dataFrame[dataFrame['PredictedGood0'] < cutOff]
@@ -163,7 +161,7 @@ def get_denied_clients_after_optimization(optimizedDf, cutOff):
     return optimizedDf[optimizedDf['OptimizedPredictedGood'] < cutOff]
 
 
-#=========================Testing functions====================================
+#==================Functions for testing the code==============================
 def get_part_of_data_frame(dataFrame, count):
     result = dataFrame.iloc[0:0] #Result: an empty data frame with same column names
 

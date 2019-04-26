@@ -1,4 +1,4 @@
-CustomerId,LoanAmount0,LoanPeriod0,Good,PredictedGood0
+ClientId,LoanAmount0,LoanPeriod0,Good,PredictedGood0
 100001,2100,7,1,365
 100002,4500,9,1,463
 100003,7000,16,0,260

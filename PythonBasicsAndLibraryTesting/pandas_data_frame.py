@@ -52,6 +52,8 @@ for index, row in df.iterrows() :
     print(calculation)
 
 #=====================Adding a new row=========================================
+#This way of adding a new row is costly and inefective if it is done multiple times
+#Better solution is to make a list, add to it what is needed and add all it's elements
 df2 = df.iloc[0:0] #Result: an empty data frame with same column names
 df2 = df2.append(df) #Add all rows from df to df2
 df2 = df2.append({'Name': 'Stamat', 'Age' : 20, 'Grade' : 5.89}, ignore_index=True) #Add one row
