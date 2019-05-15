@@ -22,6 +22,8 @@ df = pd.DataFrame(data,columns=['Name','Age', 'Grade'])
 print(df)
 print(df.loc[0])
 print(df.loc[0]['Name'])
+print(len(df)) #length of dataframe
+print(df.columns.values) #array of column names
 
 #For filtering, the expression has to look something like this:
 # resultingDataFrame = dataFrame[<boolean expression>]
@@ -48,6 +50,7 @@ print(len(filteredByAge)) #getting the count
 
 #==============Iterating a data frame:=========================================
 for index, row in df.iterrows() :
+    print(index)
     calculation = row['Age'] + row['Grade']
     print(calculation)
 
@@ -68,4 +71,29 @@ df3 = pd.DataFrame(data,columns=['Name','Age', 'Grade', 'Calculation'])
 for index, row in df.iterrows() :
     calculation = row['Age'] * row['Grade']
     
-    df3 = df3.append(row)
+    df3 = df3.append(row) #SLOW operation! It is slow because a new df is created every .append()
+#A faster operation would be appending to a "[]" and after that creating a new df with it's values
+
+df = df.append(data) #broken! Don't use this!
+
+
+#=============Appending multiple rows==========================================
+#   Most optimized way to do it:
+#   1) Copy all information from dataframe onto "[]"
+#   2) Add new data into the "[]"
+#   3) Create new dataframe with the data in "[]" and using the column names from old dataframe
+
+#   Step 1):
+resultData = []
+for index in range(0, 5): #or from 0 to len(df)
+    resultData.append(df.loc[index].values)
+    
+# Step 2):
+resultData.append(['Bai Ivan', 26, 6.0])
+resultData.append(['Bai Gosho', 28, 5.75])
+#add more data...
+
+# Step 3):
+df343 = pd.DataFrame(resultData,columns=df.columns.values)
+print(df343)
+
