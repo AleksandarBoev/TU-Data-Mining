@@ -41,3 +41,18 @@ ten_risky_clients.to_csv(acceptedClientsAfterAdjustmentsFilePath, mode='a', head
 
 results = pl.get_optimized_loan_attributes(4000, 10, -200000, par, cutOff)
 print(results)
+
+#=======================Testing set and random=================================
+someSet = {1, 2, 3}
+someSet.add(5)
+if (5 not in someSet):
+    print("Yes")
+else:
+    print("No")
+    
+import random
+for x in range(10):
+  print (random.randint(1,101))
+  
+for x in range(2, 6): #exclusive!
+    print(x)

@@ -1,30 +1,95 @@
-# TU-Data-Mining
-Technical University subject on Data Mining
-[to page](#page)
+# 						    Курсов проект по 
 
-![alt text](https://raw.githubusercontent.com/AleksandarBoev/TU-Data-Mining/master/Data/SimpleDiagram.png)
+# 					  "Извличане на закономерности от данни" 
 
-[Custom foo description](#page)
+# 							На тема 
 
+# 	  "Разделима задача за оптимизация (Separable Optimization), метод на Лагранж и оптимизация на маркетингови кампании"
 
-![some image](https://www.python.org/static/opengraph-icon-200x200.png)
-
-
-```python
-someString = 'Hello, Python!'
-print(someString)
-```
-Markdown | Less | Pretty
---- | --- | ---
-*Still* | `renders` | **nicely**
-1 | 2 | 3
-
-<ol>
-  <li>Html in a readMe?</li>
-  <li>This is cool</li>
-</ol>
-
-<input type="submit">Button</input>
+Разработили: Александър Боев, Хрисим Хрисимов
 
 
-# Page
+Съдържание:
+
+[**1.Въведение**](#въведение)
+
+[**2.Алгоритъм**](#алгоритъм)
+
+[**3.Пример**](#пример)
+
+[**4.Експерименти с реални данни**](#експерименти)
+
+# Въведение
+
+## Индивидуална оптимизация на параметрите на продукт
+
+Целта е да се увеличи броят на приеманите кандидати за кредит, без статистически да се влоши съотношението на "лошите" към приеманите кредитополучатели.
+За качеството на популацията от приемани кандидати се използва статистическият показател Bad_Rate = Bads/Accepts.
+Целта се постига като за всеки рисков клиент се търси максимално близък кредит до поискания от него, отчитайки описаните по-долу ограничения и осигурявайки скор над граничния. 
+Параметрите на кредита, които се оптимизират са: заем на кредита и брой вноски. 
+Крайният резултат е препоръчваща система, която предлага такива параметри на кредита, които са максимално близко до поисканите и които 
+трансформират кандидата от т.нар "сива" зона в нискорисков /т.е. от групата на приеманите кандидати/.
+
+Данни за клиентите на финансовата институция
+data = {ClientId, LoanAmount0, LoanPeriod0, Good, PredictedGood0}	18698 x 4
+<ul>
+<li>ClientId - идентификационен номер на клиента</li>
+<li>LoanAmount0 - големина на заема, който клиент е поискал</li>
+<li>LoanPeriod0 - продължителност на заема, която клиент е поискал</li>
+<li>Good - флаг да "Добър клиент" /в рамките на 1 г. от датата на одобрение е достигнато максимално просрочие под 3 месеца/</li>
+<li>PredictedGood0 - прогноза (скор) клиентът да е добър платец /използван е линеен регресионен модел базиран на данни* за кандидатите/</li>
+</ul>
+
+### Оптимизация
+
+**Параметри за оптимизация**
+		`x = [OptimizedLoanAmount, OptimizedLoanPeriod]` - два параметъра на кредита, чиито оптимални стойности се търсят за всеки отхвърлян кандидат. 
+		Кандидатът се приема за отхвърлян, ако 
+	`PredictedGood(x) = PredictedGood0 + par[0] * OptimizedLoanAmount + par[1] * OptimizedLoanPeriod - par[0] * LoanAmount0 - par[1] * LoanPeriod0 < cut-off`, 
+	където `par = [-0.0250382262277766, 59.0719735110589]`.
+	
+**Целева функция**
+		`f(x) = a*((x(1) - LoanAmount0)/LoanAmount0)^2 + (1 - a)*((x(2) - LoanPeriod0)/LoanPeriod0)^2`, където
+		***"a"*** е тегловен параметър в интервала (0, 1) /ако ***"a"*** = 0.9 препоръчваната /променена/ големина на заема с по-голяма тежест ще е близка до желаната от клиента/.
+	
+**Задача за оптимизация**
+
+min f(x)
+
+s.t.
+
+PredictedGood(x) >= cut-off
+
+x(1) >= 200
+
+x(1) <= 160000
+
+x(2) >= 2
+
+x(2) <= 60
+	
+x(1) = {200, 300, ..., 160000}  /1541 дискретни стойности/
+x(2) = {2, 3, ..., 60}			/60 дискретни стойности/
+
+Граничната стойност за автоматично одобрение/отхвърляне на заявка за кредит е `cut-off = 684`.
+Правилото за автоматично одобрение/отхвърляне е:
+
+`PredictedGood(x) >= cut-off  =>   Accept`
+
+`PredictedGood(x) <  cut-off  =>   Reject`
+
+### Диаграма, показваща работния процес на програмния код
+![project_diagram_pic](https://raw.githubusercontent.com/AleksandarBoev/TU-Data-Mining/master/Project/Images/project_diagram_bg.png)
+
+
+# Алгоритъм
+
+Някакво уравнение:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=L(x_{1},&space;...,&space;x_{n},&space;\lambda&space;_{1},&space;...,&space;\lambda&space;_{m})&space;=&space;f(x_{1},&space;...,&space;x_{n})&space;-&space;\sum_{k=1}^{m}&space;\lambda&space;_{k}(g_{k}(x_{1},&space;...,&space;x_{n})&space;-&space;c_{k})" target="_blank"><img src="https://latex.codecogs.com/gif.latex?L(x_{1},&space;...,&space;x_{n},&space;\lambda&space;_{1},&space;...,&space;\lambda&space;_{m})&space;=&space;f(x_{1},&space;...,&space;x_{n})&space;-&space;\sum_{k=1}^{m}&space;\lambda&space;_{k}(g_{k}(x_{1},&space;...,&space;x_{n})&space;-&space;c_{k})" title="L(x_{1}, ..., x_{n}, \lambda _{1}, ..., \lambda _{m}) = f(x_{1}, ..., x_{n}) - \sum_{k=1}^{m} \lambda _{k}(g_{k}(x_{1}, ..., x_{n}) - c_{k})" /></a>
+
+# Пример
+
+# Експерименти
+
+
