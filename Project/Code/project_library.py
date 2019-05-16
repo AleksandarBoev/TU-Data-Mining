@@ -13,67 +13,6 @@ import math
 from gekko import GEKKO  
 import random  
 
-#====================DataFrame printing functions==============================
-def print_dataframe(dataFrame): #prints all data
-    for index, row in dataFrame.iterrows() :
-        print(row)
-        print('_________________________________________________')
-        
-def print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
-    for index, row in dataFrame.iterrows() :
-        print(row)
-        print('_________________________________________________')
-        firstRows -= 1
-        if (firstRows <= 0):
-            break
-
-def pretty_string(row):
-    goodCustomer = 'Yes' if row['Good'] == 1 else 'No' #ternary operator
-    
-    return ('%s: %s | %s: %s leva | %s: %s months | %s: %s | %s: %s' % (
-          'Client id', row['ClientId'],
-          'LoanAmount0', row['LoanAmount0'],
-          'LoanPeriod0', row['LoanPeriod0'],
-          'Good', goodCustomer,
-          'PredictedGood0', row['PredictedGood0']
-            ))
-
-def pretty_print_dataframe(dataFrame): #prints all data
-    for index, row in dataFrame.iterrows() :
-        print(pretty_string(row))
-        
-def pretty_print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
-    for index, row in dataFrame.iterrows() :
-        print(pretty_string(row))
-        firstRows -= 1
-        if (firstRows <= 0):
-            break
-    
-#========================Good/Bad clients functions============================
-def filter_data_frame_by_good(dataFrame):
-    return dataFrame['Good'] == 1
-
-def filter_data_frame_by_bad(dataFrame):
-    return dataFrame['Good'] == 0
-            
-def get_good_loans_count(dataFrame):
-    return len(dataFrame[dataFrame['Good'] == True])
-
-def get_bad_loans_count(dataFrame):
-    return len(dataFrame[dataFrame['Good'] == False])
-
-def get_bad_rate(dataFrame):
-    return get_bad_loans_count(dataFrame) / get_good_loans_count(dataFrame)
-
-def get_good_rate(dataFrame):
-    return get_good_loans_count(dataFrame) / get_bad_loans_count(dataFrame)
-
-def get_good_clients_data_frame(dataFrame):
-    return dataFrame[filter_data_frame_by_good(dataFrame)]
-
-def get_bad_clients_data_frame(dataFrame):
-    return dataFrame[filter_data_frame_by_bad(dataFrame)]
-
 #=====================Roundung loan attributes=================================
 def round_floor_loan_amount_by(loanAmount, step): #1580 , 100
     residue = loanAmount % step
@@ -143,6 +82,30 @@ def get_optimized_clients_df(dataFrame, par, cutOff):
             
     return pd.DataFrame(data, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
 
+def replace_optimized_attributes_with_rounded_values(optimizedClientsDf, par):
+    data = []
+    for index, row in optimizedClientsDf.iterrows() :
+        roundedOptimizedLoanAmount = round_loan_amount(row['OptimizedLoanAmount'])
+        roundedOptimizedLoanPeriod = round_loan_period(row['OptimizedLoanPeriod'])
+        clientScoreWithRoundedValues = calculate_new_client_score(row['LoanAmount0'], row['LoanPeriod0'], row['PredictedGood0'], roundedOptimizedLoanAmount, roundedOptimizedLoanPeriod, par)
+                
+        data.append([row['ClientId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], roundedOptimizedLoanAmount, roundedOptimizedLoanPeriod, clientScoreWithRoundedValues])
+            
+    return pd.DataFrame(data, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'RoundedOptimizedLoanAmount', 'RoundedOptimizedLoanPeriod', 'OptimizedClientScoreWithRoundedValues'])
+
+def calculate_deviation(loanAmount0, optimizedLoanAmount, loanPeriod0, optimizedLoanPeriod):
+    a = 0.9
+    return (a * ((loanAmount0 - optimizedLoanAmount) / loanAmount0)**2) + (1 - a) * (((loanPeriod0 - optimizedLoanPeriod) / loanPeriod0) ** 2)
+
+def add_deviation_column_to_rounded_optimized_clients_df(roundedOptimizedClientsDf):
+    data = []
+    for index, row in roundedOptimizedClientsDf.iterrows() :
+        deviationValue = calculate_deviation(row['LoanAmount0'], row['RoundedOptimizedLoanAmount'], row['LoanPeriod0'], row['RoundedOptimizedLoanPeriod'])  
+        data.append([row['ClientId'], row['LoanAmount0'], row['LoanPeriod0'], row['Good'], row['PredictedGood0'], row['RoundedOptimizedLoanAmount'], row['RoundedOptimizedLoanPeriod'], row['OptimizedClientScoreWithRoundedValues'], deviationValue])
+            
+    return pd.DataFrame(data, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'RoundedOptimizedLoanAmount', 'RoundedOptimizedLoanPeriod', 'OptimizedClientScoreWithRoundedValues', 'Deviation'])
+
+
 def add_rounded_optimized_attributes_columns(optimizedClientsDf, par):
     data = []
     for index, row in optimizedClientsDf.iterrows() :
@@ -154,11 +117,14 @@ def add_rounded_optimized_attributes_columns(optimizedClientsDf, par):
             
     return pd.DataFrame(data, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood', 'RoundedOptimizedLoanAmount', 'RoundedOptimizedLoanPeriod', 'OptimizedClientScoreWithRoundedValues'])
 
-def calculate_deviation(loanAmount0, optimizedLoanAmount, loanPeriod0, optimizedLoanPeriod):
-    a = 0.9
-    return (a * ((loanAmount0 - optimizedLoanAmount) / loanAmount0)**2) + (1 - a) * (((loanPeriod0 - optimizedLoanPeriod) / loanPeriod0) ** 2)
 
 #=======================Writing results========================================
+def define_csv_file_columns(columnNamesArray, csvFilePath):
+    emptyData = []
+    emptyDf = pd.DataFrame(emptyData, columns=columnNamesArray)
+    emptyDf.to_csv(csvFilePath, header = True, index = False)
+
+
 #Since the GEKKO library works slowly and takes around 6 seconds for calculations
 #per record, calculating all 7325 records at once is risky. It is better to do it
 #in chunks. Note: ONLY using this function will not generate the column names.
@@ -167,9 +133,19 @@ def partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, toIndex
     partOfRiskies = get_dataframe_from_index1_to_index2_exclusive(riskyClientsDf, fromIndex, toIndex)
     partOfOptimized = get_optimized_clients_df(partOfRiskies, par, cutOff)
 
-    partOfOptimized.to_csv(csvFilePath, mode='a', header = False, index = False)
+    partOfOptimized.to_csv(csvFilePath, mode='a', header = False, index = False) #append info to file
 
     print('Done from %s to %s' % (fromIndex, toIndex))
+    
+def optimize_and_write_to_csv_in_chunks(riskyClientsDf, par, cutOff, calculationsPerIteration, csvFilePath):
+    fromIndex = 0
+    toIndex = fromIndex + calculationsPerIteration
+    while (toIndex < len(riskyClientsDf)):
+        partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, toIndex, csvFilePath)
+        fromIndex += calculationsPerIteration
+        toIndex += calculationsPerIteration
+        
+    partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, len(riskyClientsDf), csvFilePath)
 
 #=======================Get certain clients====================================
 def get_client_by_id(dataframe, clientId):
@@ -182,11 +158,11 @@ def get_accepted_clients(dataFrame, cutOff):
     return dataFrame[dataFrame['PredictedGood0'] >= cutOff]   
 
 def get_accepted_clients_after_optimization(optimizedDf, cutOff):
-    return optimizedDf[optimizedDf['OptimizedPredictedGood'] >= cutOff]
+    return optimizedDf[optimizedDf['OptimizedPredictedGood'] >= (cutOff - 0.5)] #floating point variables comparison is not very dependable
 
 #Clients, which couldn't be optimized automatically, get value of 0 for 'OptimizedPredictedGood'
 def get_denied_clients_after_optimization(optimizedDf, cutOff):
-    return optimizedDf[optimizedDf['OptimizedPredictedGood'] < cutOff]
+    return optimizedDf[optimizedDf['OptimizedPredictedGood'] < (cutOff - 0.5)]
 
 #===================Result analysis============================================
 def get_random_records(dataframe, numberOfRecordsWanted):
@@ -204,6 +180,66 @@ def get_random_records(dataframe, numberOfRecordsWanted):
         result.append(dataframe.loc[randomIndex])
     return pd.DataFrame(result, columns=['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'])
 
+#====================DataFrame printing functions==============================
+def print_dataframe(dataFrame): #prints all data
+    for index, row in dataFrame.iterrows() :
+        print(row)
+        print('_________________________________________________')
+        
+def print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
+    for index, row in dataFrame.iterrows() :
+        print(row)
+        print('_________________________________________________')
+        firstRows -= 1
+        if (firstRows <= 0):
+            break
+
+def pretty_string(row):
+    goodCustomer = 'Yes' if row['Good'] == 1 else 'No' #ternary operator
+    
+    return ('%s: %s | %s: %s leva | %s: %s months | %s: %s | %s: %s' % (
+          'Client id', row['ClientId'],
+          'LoanAmount0', row['LoanAmount0'],
+          'LoanPeriod0', row['LoanPeriod0'],
+          'Good', goodCustomer,
+          'PredictedGood0', row['PredictedGood0']
+            ))
+
+def pretty_print_dataframe(dataFrame): #prints all data
+    for index, row in dataFrame.iterrows() :
+        print(pretty_string(row))
+        
+def pretty_print_dataframe_firstRows(dataFrame, firstRows): #prints number of data
+    for index, row in dataFrame.iterrows() :
+        print(pretty_string(row))
+        firstRows -= 1
+        if (firstRows <= 0):
+            break
+    
+#========================Good/Bad clients functions============================
+def filter_data_frame_by_good(dataFrame):
+    return dataFrame['Good'] == 1
+
+def filter_data_frame_by_bad(dataFrame):
+    return dataFrame['Good'] == 0
+            
+def get_good_loans_count(dataFrame):
+    return len(dataFrame[dataFrame['Good'] == True])
+
+def get_bad_loans_count(dataFrame):
+    return len(dataFrame[dataFrame['Good'] == False])
+
+def get_bad_rate(dataFrame):
+    return get_bad_loans_count(dataFrame) / get_good_loans_count(dataFrame)
+
+def get_good_rate(dataFrame):
+    return get_good_loans_count(dataFrame) / get_bad_loans_count(dataFrame)
+
+def get_good_clients_data_frame(dataFrame):
+    return dataFrame[filter_data_frame_by_good(dataFrame)]
+
+def get_bad_clients_data_frame(dataFrame):
+    return dataFrame[filter_data_frame_by_bad(dataFrame)]
 
 #==================Functions for testing the code==============================
 def get_part_of_data_frame(dataFrame, count): #SLOW operation. More efficient would be like in "optimized clients"
@@ -216,7 +252,6 @@ def get_part_of_data_frame(dataFrame, count): #SLOW operation. More efficient wo
             break;
             
     return result
-
 
 #===================Additional functions=======================================
 def get_dataframe_from_index1_to_index2_exclusive(dataframe, index1, index2):
