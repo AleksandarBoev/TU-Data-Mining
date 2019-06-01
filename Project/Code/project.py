@@ -25,12 +25,20 @@ cutOff = 350.0
 acceptedClientsDf = pl.get_accepted_clients(df, cutOff)
 riskyClientsDf = pl.get_risky_clients(df, cutOff)
 
-optimizedClientsFilePath = rootFilePath + 'optimized_clients_data.csv'
-
 #Heavy calculations on 7k records! Time to execute: around 6 secods per record
-#pl.define_csv_file_columns(['ClientId','LoanAmount0', 'LoanPeriod0', 'Good', 'PredictedGood0', 'OptimizedLoanAmount', 'OptimizedLoanPeriod', 'OptimizedPredictedGood'], optimizedClientsFilePath)
-#pl.optimize_and_write_to_csv_in_chunks(riskyClientsDf, par, cutOff, 100, optimizedClientsFilePath)
-optimizedClientsDf = pandas.read_csv(optimizedClientsFilePath)
+optimizedClientsFilePath = rootFilePath + 'optimized_clients_data.csv'
+pl.define_csv_file_columns([
+        'ClientId',
+        'LoanAmount0', 
+        'LoanPeriod0', 
+        'Good', 
+        'PredictedGood0', 
+        'OptimizedLoanAmount', 
+        'OptimizedLoanPeriod', 
+        'OptimizedPredictedGood'
+        ], optimizedClientsFilePath)
+pl.optimize_and_write_to_csv_in_chunks(riskyClientsDf, par, cutOff, 100, optimizedClientsFilePath)
+optimizedClientsDf = pandas.read_csv(optimizedClientsFilePath) #already calculated
 
 acceptedClientsAfterOptimizationDf = pl.get_accepted_clients_after_optimization(optimizedClientsDf, cutOff)
 roundedAttributesAcceptedClients = pl.replace_optimized_attributes_with_rounded_values(acceptedClientsAfterOptimizationDf, par)

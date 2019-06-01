@@ -48,7 +48,7 @@ def get_optimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par,
     try:
         n.solve(disp=False)
         return [x1.value[0], x2.value[0]]
-    except: #TODO don't know how to only intercept "Solution Not Found" exception
+    except:
         return [0, 0]
 
 def get_rounded_iptimized_loan_attributes(loanAmount0, loanPeriod0, predictedGood0, par, cutOff, loanAmountStep):
@@ -140,10 +140,12 @@ def partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, toIndex
 def optimize_and_write_to_csv_in_chunks(riskyClientsDf, par, cutOff, calculationsPerIteration, csvFilePath):
     fromIndex = 0
     toIndex = fromIndex + calculationsPerIteration
-    while (toIndex < len(riskyClientsDf)):
+    while (toIndex <= len(riskyClientsDf)):
         partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, toIndex, csvFilePath)
         fromIndex += calculationsPerIteration
         toIndex += calculationsPerIteration
+        if (toIndex > len(riskyClientsDf)):
+            toIndex = len(riskyClientsDf)
         
     partial_writing_onto_csvfile(riskyClientsDf, par, cutOff, fromIndex, len(riskyClientsDf), csvFilePath)
 
